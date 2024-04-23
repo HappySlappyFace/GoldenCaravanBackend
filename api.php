@@ -4,6 +4,11 @@ header('Content-Type: application/json');
 error_reporting(0);
 ini_set('display_errors', 0);
 
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+
 require_once 'config.php';
 require_once __DIR__ . '/vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -36,25 +41,7 @@ switch ($method) {
             // echo $resource;
             switch ($resource) {
                 case 'unsplash':
-                    ini_set('display_errors', 1);
-                    error_reporting(E_ALL);
-                    // $search = 'hotel room';
-                    // $page = 1;
-                    // $per_page = 30;
-                    // $orientation = 'squarish';
 
-                    // $pageResult =Unsplash\Search::photos($search, $page, $per_page, $orientation);
-                    // $photos = $pageResult->getResults();
-
-                    // if (!empty($photos)) {
-                    //     // Iterate through each photo in the results
-                    //     foreach ($photos as $photo) {
-                    //         $imageUrl = $photo['urls']['regular'];
-                    //         echo 'Image URL: ' . $imageUrl . "<br>";
-                    //     }
-                    // } else {
-                    //     echo 'No photos found';
-                    // }
                     $search = 'hotel room';
                     $orientation = 'squarish';
                     $totalRooms = 100;
@@ -96,6 +83,16 @@ switch ($method) {
                     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     echo json_encode($users);
                     break;
+                case 'Room':
+                    // Fetch user data
+                    $room = $_GET['room'] ?? '';
+                    $stmt = $pdo->prepare('SELECT * FROM Rooms r WHERE r.idRoom = :room');
+                    $stmt->bindParam(':room', $room, PDO::PARAM_STR); 
+                    $stmt->execute(); // You need to call execute() for prepared statements
+                    $roomDetails = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode($roomDetails);
+                    break;
+                    
                 case 'Rooms':
                     $city = $_GET['city'] ?? '';
                     $checkInDate = $_GET['checkInDate'] ?? '';
