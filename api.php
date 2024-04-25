@@ -155,9 +155,54 @@ switch ($method) {
             echo json_encode(['error' => 'No resource specified']);
         }
         break;
+    case 'POST':
+        // Authenticate the user and create a session for a successful login
+        if ($resource === 'login') {
+            $json = file_get_contents('php://input');
+            $data = json_decode($json);
+            
+            // Perform validation and sanitation on $data here
+            
+            if (isset($data->email) && isset($data->password)) {
+                // Use a method to authenticate the user
+                $user = authenticate_user($data->email, $data->password);
+                
+                if ($user) {
+                    // Set session variables for the authenticated user
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['logged_in'] = true;
+                    
+                    // Send a success response
+                    echo json_encode(array('status' => 'success', 'message' => 'Logged in successfully.'));
+                } else {
+                    http_response_code(401); // Unauthorized
+                    echo json_encode(array('status' => 'fail', 'message' => 'Invalid credentials.'));
+                }
+            } else {
+                http_response_code(400); // Bad Request
+                echo json_encode(array('status' => 'fail', 'message' => 'Email and password are required.'));
+            }
+        }
+        // Additional POST logic for other resources here if necessary
+        break;
     default:
         http_response_code(405);
         echo json_encode(['error' => "Method $method not supported"]);
         break;
+}
+
+function authenticate_user($email, $password) {
+    // Your authentication logic to check the credentials against the database goes here.
+    // For simplicity, pseudocode is provided below:
+    /*
+    $pdo = new PDO('mysql:host=your_host;dbname=your_db', 'user', 'password');
+    $statement = $pdo->prepare("SELECT * FROM users WHERE email = :email AND password = :password");
+    $statement->execute(array(":email" => $email, ":password" => $password));
+    $user = $statement->fetch(PDO::FETCH_ASSOC);
+    return $user ? $user : false;
+    */
+    
+    // Placeholder return for demonstration:
+    return $email === 'test@example.com' && $password === 'password' ? ['id' => 1] : false;
 }
 ?>
