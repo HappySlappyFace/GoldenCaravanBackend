@@ -52,19 +52,17 @@ switch ($method) {
 
                     // Fetch images until we get enough for all rooms
                     while ($imagesNeeded > 0) {
-                        $perPage = min(30, $imagesNeeded); // Fetch up to 30 images per call, but not more than we need
+                        $perPage = min(30, $imagesNeeded); 
                         $pageResult = Unsplash\Search::photos($search, $currentPage, $perPage, $orientation);
                         $photos = $pageResult->getResults();
 
                         foreach ($photos as $photo) {
-                            $allImages[] = $photo['urls']['regular']; // Collect image URLs
+                            $allImages[] = $photo['urls']['regular'];
                         }
 
-                        $imagesNeeded -= $perPage; // Decrement the counter by the number of images fetched
-                        $currentPage++; // Increment to fetch next set of images
+                        $imagesNeeded -= $perPage;
+                        $currentPage++; 
                     }
-
-                    // Database connection setup
 
                     // Update rooms with images
                     foreach ($allImages as $index => $imageUrl) {
