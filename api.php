@@ -26,6 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 
 require_once 'config.php';
+require_once 'authenticate.php';
 require_once __DIR__ . '/vendor/autoload.php';
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
@@ -178,12 +179,11 @@ switch ($method) {
             
             if (isset($data->email) && isset($data->password)) {
                 // Use a method to authenticate the user
-                $user = authenticate_user($data->email, $data->password);
+                $user = authenticate_user($pdo,$data->email, $data->password);
                 
                 if ($user) {
-                    // Set session variables for the authenticated user
                     session_start();
-                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['user_id'] = $user['idUser'];
                     $_SESSION['logged_in'] = true;
 
                     // Send a success response
@@ -197,7 +197,6 @@ switch ($method) {
                 echo json_encode(array('status' => 'fail', 'message' => 'Email and password are required.'));
             }
         }
-        // Additional POST logic for other resources here if necessary
         break;
     default:
         http_response_code(405);
@@ -205,18 +204,4 @@ switch ($method) {
         break;
 }
 
-function authenticate_user($email, $password) {
-    // Your authentication logic to check the credentials against the database goes here.
-    // For simplicity, pseudocode is provided below:
-    /*
-    $pdo = new PDO('mysql:host=your_host;dbname=your_db', 'user', 'password');
-    $statement = $pdo->prepare("SELECT * FROM users WHERE email = :email AND password = :password");
-    $statement->execute(array(":email" => $email, ":password" => $password));
-    $user = $statement->fetch(PDO::FETCH_ASSOC);
-    return $user ? $user : false;
-    */
-    
-    // Placeholder return for demonstration:
-    return $email === 'test@example.com' && $password === 'password' ? ['id' => 1] : false;
-}
 ?>
