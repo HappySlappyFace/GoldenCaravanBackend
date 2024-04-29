@@ -1,5 +1,9 @@
 <?php
-header('Access-Control-Allow-Origin: *');
+// Set headers for CORS
+header('Access-Control-Allow-Origin: http://localhost:5173'); // Replace with your front-end's origin
+header('Access-Control-Allow-Credentials: true');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Origin, Content-Type, Accept');
 header('Content-Type: application/json');
 error_reporting(0);
 ini_set('display_errors', 0);
@@ -7,6 +11,18 @@ ini_set('display_errors', 0);
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    // Required for CORS preflight check
+    header("Access-Control-Allow-Origin: http://localhost:5173"); // Adjust this to your front-end's actual origin
+    header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Allow-Credentials: true");
+    header("Content-Length: 0");
+    header("Content-Type: text/plain");
+    http_response_code(200); // You need to send back an HTTP 200 OK status
+    exit;
+}
 
 
 require_once 'config.php';
@@ -21,9 +37,6 @@ Unsplash\HttpClient::init([
 	'callbackUrl'	=> 'https://your-application.com/oauth/callback',
 	'utmSource' => 'Golden Caravan'
 ]);
-// Set the content type to JSON
-// Setup header for JSON response
-header('Content-Type: application/json');
 
 
 // Get the path from the URL
@@ -169,9 +182,10 @@ switch ($method) {
                 
                 if ($user) {
                     // Set session variables for the authenticated user
+                    session_start();
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['logged_in'] = true;
-                    
+
                     // Send a success response
                     echo json_encode(array('status' => 'success', 'message' => 'Logged in successfully.'));
                 } else {
