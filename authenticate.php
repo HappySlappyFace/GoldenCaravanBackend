@@ -20,8 +20,12 @@ function authorize_user($requiredRoles) {
             return true;
         }
     }
-
     return false;
+}
+function getUserRoles() {
+    session_start();
+    // error_log($_SESSION['user_role']);
+    return $_SESSION['user_role'];
 }
 
 ?>

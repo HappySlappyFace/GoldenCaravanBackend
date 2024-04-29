@@ -53,14 +53,9 @@ $method = $_SERVER['REQUEST_METHOD'];
 switch ($method) {
     case 'GET':
         if ($resource) {
-            // echo $resource;
             switch ($resource) {
                 case 'unsplash':
                     //Unsplash is only called by administrator to fill in the database with images
-                    // if (session_status() == PHP_SESSION_NONE) {
-                    //     session_start();
-                    // }
-
                     if (authorize_user(['Admin', 'SuperAdmin'])) {
                         $search = 'hotel room';
                         $orientation = 'squarish';
@@ -190,7 +185,7 @@ switch ($method) {
             // Perform validation and sanitation on $data here
             
             if (isset($data->email) && isset($data->password)) {
-                $user = authenticate_user($pdo,$data->email, $data->password);
+                $user = authenticate_user($pdo, $data->email, $data->password);
                 if ($user) {
                     if (session_status() == PHP_SESSION_NONE) {
                         session_start();
@@ -221,6 +216,34 @@ switch ($method) {
                 http_response_code(400); // Bad Request
                 echo json_encode(array('status' => 'fail', 'message' => 'Email and password are required.'));
             }
+        }
+        if ($resource === 'getUserRole') {
+            session_start();
+            if (!isset($_SESSION['user_id'])) {
+                http_response_code(401); // Unauthorized
+                echo json_encode(array('error' => 'User is not logged in.'));
+                // Close the session
+                exit;
+            }
+            session_write_close(); 
+            $user_id = $_SESSION['user_id'];
+
+            // Perform your database query to get user information, including userType
+            // Replace this with your actual database query
+            // Example: SELECT * FROM Users WHERE id = :user_id
+            // Remember to use prepared statements to prevent SQL injection
+            $userType=getUserRoles();
+            
+            // Example user information (replace with your actual database query result)
+            $userInformation = array(
+                'userType' => $userType // Replace 'Admin' with the actual userType fetched from the database
+                // Add other user information here
+            );
+
+            // Return user information as JSON response
+            echo json_encode($userInformation);
+
+
         }
         break;
     default:
