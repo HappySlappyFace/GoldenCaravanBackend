@@ -46,6 +46,7 @@ $segments = explode('/', trim($path, '/'));
 $searchText = isset($_GET['search']) ? $_GET['search'] : '';
 
 // Assuming 'api.php' is at the root and followed by the resource type
+// in other words, /Web2/Project/
 $resource = $segments[3] ?? null;
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -55,48 +56,58 @@ switch ($method) {
             // echo $resource;
             switch ($resource) {
                 case 'unsplash':
+                    //Unsplash is only called by administrator to fill in the database with images
+                    // if (session_status() == PHP_SESSION_NONE) {
+                    //     session_start();
+                    // }
 
-                    $search = 'hotel room';
-                    $orientation = 'squarish';
-                    $totalRooms = 100;
-                    $imagesNeeded = $totalRooms;
-                    $currentPage = 13;
+                    if (authorize_user(['Admin', 'SuperAdmin'])) {
+                        $search = 'hotel room';
+                        $orientation = 'squarish';
+                        $totalRooms = 100;
+                        $imagesNeeded = $totalRooms;
+                        $currentPage = 13;
 
-                    $allImages = [];
+                        $allImages = [];
 
-                    // Fetch images until we get enough for all rooms
-                    while ($imagesNeeded > 0) {
-                        $perPage = min(30, $imagesNeeded); 
-                        $pageResult = Unsplash\Search::photos($search, $currentPage, $perPage, $orientation);
-                        $photos = $pageResult->getResults();
+                        // Fetch images until we get enough for all rooms
+                        while ($imagesNeeded > 0) {
+                            $perPage = min(30, $imagesNeeded); 
+                            // $pageResult = Unsplash\Search::photos($search, $currentPage, $perPage, $orientation);
+                            // $photos = $pageResult->getResults();
 
-                        foreach ($photos as $photo) {
-                            $allImages[] = $photo['urls']['regular'];
+                            // foreach ($photos as $photo) {
+                            //     $allImages[] = $photo['urls']['regular'];
+                            // }
+
+                            $imagesNeeded -= $perPage;
+                            $currentPage++; 
                         }
 
-                        $imagesNeeded -= $perPage;
-                        $currentPage++; 
+                        // Update rooms with images
+                        // foreach ($allImages as $index => $imageUrl) {
+                        //     $roomId = sprintf("02SF%03d", $index + 1); // Generate room ID as you described
+                        //     $stmt = $pdo->prepare("UPDATE Rooms SET imageUrl = :imageUrl WHERE idRoom = :idRoom");
+                        //     $stmt->execute([':imageUrl' => $imageUrl, ':idRoom' => $roomId]);
+                        // }
+
+                        echo "Rooms updated successfully with new image URLs.";
+                        break;
+                    } else {
+                        http_response_code(403); // Forbidden
+                        echo json_encode(array('status' => 'fail', 'message' => 'Not authorized.'));
+                        exit;
                     }
-
-                    // Update rooms with images
-                    foreach ($allImages as $index => $imageUrl) {
-                        $roomId = sprintf("02SF%03d", $index + 1); // Generate room ID as you described
-
-                        // Prepare SQL statement to update room
-                        $stmt = $pdo->prepare("UPDATE Rooms SET imageUrl = :imageUrl WHERE idRoom = :idRoom");
-                        $stmt->execute([':imageUrl' => $imageUrl, ':idRoom' => $roomId]);
-                    }
-
-                    echo "Rooms updated successfully with new image URLs.";
-                    break;
+                    
+                    
                 case 'users':
-                    // Fetch user data
+                    // Fetch all users
                     $stmt = $pdo->query('SELECT * FROM users');
                     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     echo json_encode($users);
                     break;
                 case 'Room':
-                    // Fetch user data
+                    // Fetch room data
                     $room = $_GET['room'] ?? '';
                     $stmt = $pdo->prepare('SELECT * FROM Rooms r WHERE r.idRoom = :room');
                     $stmt->bindParam(':room', $room, PDO::PARAM_STR); 
@@ -171,6 +182,7 @@ switch ($method) {
         break;
     case 'POST':
         // Authenticate the user and create a session for a successful login
+        
         if ($resource === 'login') {
             $json = file_get_contents('php://input');
             $data = json_decode($json);
@@ -178,14 +190,27 @@ switch ($method) {
             // Perform validation and sanitation on $data here
             
             if (isset($data->email) && isset($data->password)) {
-                // Use a method to authenticate the user
                 $user = authenticate_user($pdo,$data->email, $data->password);
-                
                 if ($user) {
-                    session_start();
+                    if (session_status() == PHP_SESSION_NONE) {
+                        session_start();
+                    }
+                    
                     $_SESSION['user_id'] = $user['idUser'];
+                    $_SESSION['user_role'] = $user['userType'];
                     $_SESSION['logged_in'] = true;
 
+                    if (session_status() == PHP_SESSION_NONE) {
+                        session_start();
+                    }
+                    
+                    // Log session data to error log for debugging
+                    // error_log("Session Status: " . session_status());
+                    // error_log("Session ID: " . session_id());
+                    // error_log("User ID: " . (isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 'Not set'));
+                    // error_log("User Role: " . (isset($_SESSION['user_role']) ? $_SESSION['user_role'] : 'Not set'));
+                    // error_log("Logged In: " . (isset($_SESSION['logged_in']) ? 'Yes' : 'No'));
+                    
                     // Send a success response
                     echo json_encode(array('status' => 'success', 'message' => 'Logged in successfully.'));
                 } else {

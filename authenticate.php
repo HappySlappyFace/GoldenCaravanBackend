@@ -8,5 +8,20 @@ function authenticate_user($pdo,$email, $password) {
     
     // return $email === 'test@example.com' && $password === 'password' ? ['id' => 1] : false;
 }
-// echo authenticate_user($pdo,"rebai.ayman@gmail.com","ayman123");
+function authorize_user($requiredRoles) {
+    session_start();
+    error_log($_SESSION['user_role']);
+    if (empty($requiredRoles)) {
+        return true;
+    }
+    if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] && isset($_SESSION['user_role'])) {
+        // Check if the user's role is in the array of allowed roles
+        if (in_array($_SESSION['user_role'], $requiredRoles)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 ?>
