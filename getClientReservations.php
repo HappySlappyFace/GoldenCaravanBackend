@@ -8,12 +8,17 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
   
 
-function getUserData($pdo, $userId) {
+function getUserReservations($pdo, $userId) {
     try {
-        $stmt = $pdo->prepare("SELECT idUser, firstName, lastName, email, profilePicture FROM Users WHERE idUser = :userId");
+        $stmt = $pdo->prepare("SELECT Booking.*, Rooms.roomType, Hotels.name AS hotelName
+        FROM Booking
+        JOIN Rooms ON Booking.idRoom = Rooms.idRoom
+        JOIN Hotels ON Rooms.idHotel = Hotels.idHotel
+        WHERE Booking.idClient = :userId;
+        ");
         $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
         $stmt->execute();
-        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+        $userData = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $userData;
     } catch(PDOException $e) {
         
@@ -23,10 +28,10 @@ function getUserData($pdo, $userId) {
 }
 
 // $userId = 1;
-// $userData = getUserData($pdo, $userId);
+// $userData = getUserReservations($pdo, $userId);
 
 if (isset($_SESSION['user_id'])) {
-    $userData = getUserData($pdo,$_SESSION['user_id']);
+    $userData = getUserReservations($pdo,$_SESSION['user_id']);
     
     if ($userData) {
         // Send user data as JSON response
