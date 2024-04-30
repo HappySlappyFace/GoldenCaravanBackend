@@ -27,32 +27,47 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Collect data from POST request
 $roomId = $_POST['roomId'] ?? '';
 $startDate = $_POST['startDate'] ?? '';
 $endDate = $_POST['endDate'] ?? '';
-$status = $_POST['status'] ?? 'pending'; // Default status
-$price = $_POST['price'] ?? 0; // Default price to 0 if not provided
-
-// Validate data - simple validation
+error_log($roomId);
+error_log($startDate);
+error_log($endDate);
 if (empty($roomId) || empty($startDate) || empty($endDate)) {
     http_response_code(400);
     echo json_encode(['error' => 'Missing required fields']);
     exit;
 }
+function calculatePrice($pdo, $roomId, $startDate, $endDate) {
 
-// Prepare SQL statement to insert booking
-$sql = "INSERT INTO booking (idClient, idRoom, startDate, endDate, status, price) 
+    $sql = "SELECT price FROM Rooms WHERE idRoom = :idRoom";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':idRoom' => $roomId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $basePrice = $row['price'];
+
+
+    $start = new DateTime($startDate);
+    $end = new DateTime($endDate);
+    $interval = $start->diff($end);
+    $numberOfDays = $interval->days;
+
+    //this will only calculate the price depending on base price, did not implement season pricing yet
+    $totalPrice = $basePrice * $numberOfDays;
+
+    return $totalPrice;
+}
+
+$price = calculatePrice($pdo, $roomId, $startDate, $endDate);
+$sql = "INSERT INTO Booking (idClient, idRoom, startDate, endDate, status, price) 
         VALUES (:idClient, :idRoom, :startDate, :endDate, :status, :price)";
 $stmt = $pdo->prepare($sql);
-
-// Bind parameters to statement
 $params = [
-    ':idClient' => $_SESSION['user_id'], // Assuming 'user_id' is stored in session
+    ':idClient' => $_SESSION['user_id'],
     ':idRoom' => $roomId,
     ':startDate' => $startDate,
     ':endDate' => $endDate,
-    ':status' => $status,
+    ':status' => 0, 
     ':price' => $price
 ];
 

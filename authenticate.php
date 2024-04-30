@@ -10,7 +10,7 @@ function authenticate_user($pdo,$email, $password) {
 }
 function authorize_user($requiredRoles) {
     session_start();
-    error_log($_SESSION['user_role']);
+    // error_log($_SESSION['user_role']);
     if (empty($requiredRoles)) {
         return true;
     }
