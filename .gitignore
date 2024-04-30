@@ -1,6 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/dotenv,phpstorm,composer
 # Edit at https://www.toptal.com/developers/gitignore?templates=dotenv,phpstorm,composer
 
+uploads/
 ### Composer ###
 composer.phar
 /vendor/
