@@ -19,7 +19,6 @@ function validateReservation($pdo, $id) {
 }
 
 function createReservation($pdo) {
-    // Assuming POST data contains reservation details
     $stmt = $pdo->prepare("INSERT INTO Booking (startDate, endDate, hotelName, status, price) VALUES (?, ?, ?, 0, ?)");
     $result = $stmt->execute([$_POST['startDate'], $_POST['endDate'], $_POST['hotelName'], $_POST['price']]);
     return $result ? ['success' => true, 'message' => 'Reservation created'] : ['success' => false, 'message' => 'Failed to create reservation'];
