@@ -9,8 +9,7 @@ error_reporting(0);
 ini_set('display_errors', 0);
 
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     // Required for CORS preflight check
@@ -95,12 +94,12 @@ switch ($method) {
                     }
                     
                     
-                case 'users':
-                    // Fetch all users
-                    $stmt = $pdo->query('SELECT * FROM users');
-                    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    echo json_encode($users);
-                    break;
+                // case 'users':
+                //     // Fetch all users
+                //     $stmt = $pdo->query('SELECT * FROM users');
+                //     $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                //     echo json_encode($users);
+                //     break;
                 case 'Room':
                     // Fetch room data
                     $room = $_GET['room'] ?? '';

@@ -3,22 +3,8 @@ session_start(); // Start or resume an existing session
 
 // Include your database connection from config.php
 require 'config.php';
-header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: http://localhost:5173"); // Allow only your frontend to access
-header("Access-Control-Allow-Credentials: true"); // Allow cookies
-header("Access-Control-Allow-Headers: Content-Type"); // Allow only headers of type Content-Type
-header("Access-Control-Allow-Methods: POST, OPTIONS");
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    // Required for CORS preflight check
-    header("Access-Control-Allow-Origin: http://localhost:5173"); // Adjust this to your front-end's actual origin
-    header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization");
-    header("Access-Control-Allow-Credentials: true");
-    header("Content-Length: 0");
-    header("Content-Type: text/plain");
-    http_response_code(200); // You need to send back an HTTP 200 OK status
-    exit;
-}
+require 'corsFix.php';
+
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
     // If the user is not logged in, return an error
@@ -39,7 +25,7 @@ if (empty($roomId) || empty($startDate) || empty($endDate)) {
     exit;
 }
 function calculatePrice($pdo, $roomId, $startDate, $endDate) {
-
+    // echo $roomId;
     $sql = "SELECT price FROM Rooms WHERE idRoom = :idRoom";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':idRoom' => $roomId]);
@@ -53,7 +39,7 @@ function calculatePrice($pdo, $roomId, $startDate, $endDate) {
     $numberOfDays = $interval->days;
 
     //this will only calculate the price depending on base price, did not implement season pricing yet
-    $totalPrice = $basePrice * $numberOfDays;
+    $totalPrice = $basePrice * ($numberOfDays+1);
 
     return $totalPrice;
 }
@@ -70,7 +56,9 @@ $params = [
     ':status' => 0, 
     ':price' => $price
 ];
-
+// echo $price;
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 // Execute the statement
 try {
     $stmt->execute($params);
