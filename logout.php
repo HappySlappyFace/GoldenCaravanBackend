@@ -5,12 +5,10 @@ header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 
-session_start(); // Start the session to access session variables
+session_start();
 
-// Unset all session variables
 $_SESSION = array();
 
-// If it's desired to kill the session, also delete the session cookie.
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', time() - 42000,

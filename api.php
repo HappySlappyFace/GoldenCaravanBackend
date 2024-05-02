@@ -1,28 +1,5 @@
 <?php
-// Set headers for CORS
-header('Access-Control-Allow-Origin: http://localhost:5173'); // Replace with your front-end's origin
-header('Access-Control-Allow-Credentials: true');
-header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Origin, Content-Type, Accept');
-header('Content-Type: application/json');
-error_reporting(0);
-ini_set('display_errors', 0);
-
-
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    // Required for CORS preflight check
-    header("Access-Control-Allow-Origin: http://localhost:5173"); // Adjust this to your front-end's actual origin
-    header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization");
-    header("Access-Control-Allow-Credentials: true");
-    header("Content-Length: 0");
-    header("Content-Type: text/plain");
-    http_response_code(200); // You need to send back an HTTP 200 OK status
-    exit;
-}
-
+include 'corsFix.php';
 
 require_once 'config.php';
 require_once 'authenticate.php';
@@ -159,7 +136,6 @@ switch ($method) {
                     $searchTerm = '%' . $searchText . '%';
                     $stmt->bindParam(':searchText', $searchTerm, PDO::PARAM_STR);
 
-                    // Execute the statement and fetch the results
                     $stmt->execute();
                     $hotels = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     echo json_encode($hotels);
@@ -175,13 +151,10 @@ switch ($method) {
         }
         break;
     case 'POST':
-        // Authenticate the user and create a session for a successful login
-        
         if ($resource === 'login') {
             $json = file_get_contents('php://input');
             $data = json_decode($json);
             
-            // Perform validation and sanitation on $data here
             
             if (isset($data->email) && isset($data->password)) {
                 $user = authenticate_user($pdo, $data->email, $data->password);
@@ -226,23 +199,12 @@ switch ($method) {
             }
             session_write_close(); 
             $user_id = $_SESSION['user_id'];
-
-            // Perform your database query to get user information, including userType
-            // Replace this with your actual database query
-            // Example: SELECT * FROM Users WHERE id = :user_id
-            // Remember to use prepared statements to prevent SQL injection
             $userType=getUserRoles();
             
-            // Example user information (replace with your actual database query result)
             $userInformation = array(
-                'userType' => $userType // Replace 'Admin' with the actual userType fetched from the database
-                // Add other user information here
+                'userType' => $userType
             );
-
-            // Return user information as JSON response
             echo json_encode($userInformation);
-
-
         }
         break;
     default:

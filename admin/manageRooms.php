@@ -63,7 +63,6 @@ function getNextRoomId($pdo, $prefix) {
 }
 
 function createRoom($pdo, $data) {
-    // Check if 'idHotelPrefix' is provided
     if (!isset($data['idHotelPrefix']) || !$data['idHotelPrefix']) {
         http_response_code(400);
         echo json_encode(['success' => false, 'message' => 'Hotel prefix is missing']);
@@ -71,8 +70,7 @@ function createRoom($pdo, $data) {
     }
 
     try {
-        $newId = getNextRoomId($pdo, $data['idHotelPrefix']); // Generate the new room ID
-
+        $newId = getNextRoomId($pdo, $data['idHotelPrefix']); 
         if (!$newId) {
             throw new Exception("Failed to generate a new room ID.");
         }

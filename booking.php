@@ -1,13 +1,9 @@
 <?php
-session_start(); // Start or resume an existing session
-
-// Include your database connection from config.php
+session_start();
 require 'config.php';
 require 'corsFix.php';
 
-// Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    // If the user is not logged in, return an error
     http_response_code(403);
     echo json_encode(['error' => 'User not authenticated']);
     exit;
