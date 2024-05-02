@@ -1,5 +1,5 @@
 <?php
-  // This includes the $pdo connection
+
 
 include '../corsFix.php';
 ini_set('display_errors', 1);
