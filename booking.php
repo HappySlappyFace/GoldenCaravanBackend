@@ -25,21 +25,45 @@ if (empty($roomId) || empty($startDate) || empty($endDate)) {
     exit;
 }
 function calculatePrice($pdo, $roomId, $startDate, $endDate) {
-    // echo $roomId;
     $sql = "SELECT price FROM Rooms WHERE idRoom = :idRoom";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':idRoom' => $roomId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $basePrice = $row['price'];
-
-
     $start = new DateTime($startDate);
     $end = new DateTime($endDate);
     $interval = $start->diff($end);
     $numberOfDays = $interval->days;
 
-    //this will only calculate the price depending on base price, did not implement season pricing yet
-    $totalPrice = $basePrice * ($numberOfDays+1);
+
+    // Determine if any part of the stay falls within the high season
+    $highSeasonStart = new DateTime(date("Y") . "-06-01");
+    $highSeasonEnd = new DateTime(date("Y") . "-08-31");
+
+    // Adjust date objects to ensure they only include the year of the reservation
+    $highSeasonStart->setDate($start->format('Y'), 6, 1);
+    $highSeasonEnd->setDate($start->format('Y'), 8, 31);
+
+    // Calculate the total days in high season
+    $daysInHighSeason = 0;
+
+    // Loop from start to end date and count days within high season
+    for ($date = clone $start; $date <= $end; $date->modify('+1 day')) {
+        if ($date >= $highSeasonStart && $date <= $highSeasonEnd) {
+            $daysInHighSeason++;
+        }
+    }
+
+    // Calculate total price
+    if ($daysInHighSeason > 0) {
+        // Calculate high season price and off-season price
+        $highSeasonPrice = ($basePrice * 1.20) * $daysInHighSeason; // 20% increase in base price
+        $offSeasonDays = $numberOfDays + 1 - $daysInHighSeason;
+        $offSeasonPrice = $basePrice * $offSeasonDays;
+        $totalPrice = $highSeasonPrice + $offSeasonPrice;
+    } else {
+        $totalPrice = $basePrice * ($numberOfDays + 1);
+    }
 
     return $totalPrice;
 }
